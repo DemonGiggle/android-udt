@@ -1,4 +1,3 @@
-
 android-udt
 ===========
 
@@ -13,7 +12,6 @@ Environment
 I have test the build environments as follows:
 
 * Ubuntu 11.04, 11.10 
-* gcc 4.6.1, gcc 4.7.1
 
 
 Instruction
