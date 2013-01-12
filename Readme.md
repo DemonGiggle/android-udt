@@ -9,5 +9,5 @@ Please download android ndk first (the latest version, I only test on r8d versio
 Instruction
 ===========
 
-> cd jni
-> ndk-build
+> bash$ cd jni && ndk-build
+
