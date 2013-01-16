@@ -1,2 +1,4 @@
 obj/
 libs/
+bin/
+gen/
