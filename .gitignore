@@ -2,3 +2,5 @@ obj/
 libs/
 bin/
 gen/
+build.xml
+local.properties
