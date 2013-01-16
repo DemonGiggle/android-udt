@@ -58,10 +58,10 @@ JNIEXPORT jint JNICALL Java_com_udt_udt_send
 /*
  * Class:     com_udt_udt
  * Method:    recv
- * Signature: (I[BII)I
+ * Signature: (II)[B
  */
-JNIEXPORT jint JNICALL Java_com_udt_udt_recv
-  (JNIEnv *, jobject, jint, jbyteArray, jint, jint);
+JNIEXPORT jbyteArray JNICALL Java_com_udt_udt_recv
+  (JNIEnv *, jobject, jint, jint);
 
 #ifdef __cplusplus
 }

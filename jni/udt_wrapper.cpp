@@ -97,8 +97,18 @@ jint JNICALL Java_com_udt_udt_send(JNIEnv *env, jobject thiz, jint handle, jbyte
     return result;
 }
 
-jint Java_com_udt_udt_recv(JNIEnv *, jobject, jint, jbyteArray, jint, jint)
+jbyteArray JNICALL Java_com_udt_udt_recv(JNIEnv *env, jobject thiz, jint handle, jint size, jint flags)
 {
-    return 0;
-}
+    char *buffer = new buffer[size];
+    int recv_size = UDT::recv(handle, buffer, size, flags);
 
+    if (recv_size == UDT::ERROR)
+    {
+        recv_size = 0;
+    }
+
+    jbyteArray recv_buffer = env->NewByteArray(recv_size);
+    memcpy(recv_buffer, buffer, recv_size);
+
+    
+}

@@ -22,7 +22,7 @@ public class udt extends Activity
     public native int connect(int socket, String ip, int port);
     public native int close(int socket);
     public native int send(int socket, byte[] buffer, int flags);
-    public native int recv(int socket, byte[] buffer, int len, int flags);
+    public native byte[] recv(int socket, int size, int flags);
 
     // application port from the appclient
     private void appclient() {
