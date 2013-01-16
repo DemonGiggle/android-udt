@@ -42,3 +42,19 @@ LOCAL_SRC_FILES := app/test.cpp
 LOCAL_CFLAGS += -I$(LOCAL_PATH)/lib 
 LOCAL_SHARED_LIBRARIES := udt
 include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE    := client_sendfile
+LOCAL_SRC_FILES := app/client_sendfile.cpp
+LOCAL_CFLAGS += -I$(LOCAL_PATH)/lib 
+LOCAL_SHARED_LIBRARIES := udt
+include $(BUILD_EXECUTABLE)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE    := udtjni
+LOCAL_SRC_FILES := udt_wrapper.cpp
+LOCAL_CFLAGS += -I$(LOCAL_PATH)/lib -std=c++0x
+LOCAL_LDLIBS := -L$(SYSROOT)/usr/lib -llog 
+LOCAL_SHARED_LIBRARIES := udt
+include $(BUILD_SHARED_LIBRARY)
+
