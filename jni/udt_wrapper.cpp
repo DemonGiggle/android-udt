@@ -93,9 +93,7 @@ jint JNICALL Java_com_udt_udt_close(JNIEnv *env, jobject thiz, jint handle)
 jint JNICALL Java_com_udt_udt_send(JNIEnv *env, jobject thiz, jint handle, jbyteArray data, jint flag)
 {
     jsize size = env->GetArrayLength(data);
-
-    jboolean is_copy = JNI_FALSE;
-    jbyte* data_ptr = env->GetByteArrayElements(data, &is_copy);
+    jbyte* data_ptr = env->GetByteArrayElements(data, NULL);
 
     int result = UDT::send(handle, (const char*)data_ptr, size, flag);
     if (result == UDT::ERROR)
