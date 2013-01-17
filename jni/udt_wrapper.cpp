@@ -8,6 +8,19 @@
 
 #include <string>
 
+namespace {
+
+    std::string to_string(int value) 
+    {
+        char buffer[100] = {0};
+        sprintf(buffer, "%d", value);
+
+        return std::string(buffer);
+    }
+}
+
+const char TAG[] = "UDT-JNI";
+
 jint JNICALL Java_com_udt_udt_startup(JNIEnv *, jobject)
 {
     return UDT::startup();
@@ -31,9 +44,8 @@ jint JNICALL Java_com_udt_udt_socket(JNIEnv *, jobject)
     int result = 0;
     if ((result = getaddrinfo(NULL, "9000", &hints, &local)) != 0)
     {
-        char error[100] = {0};
-        sprintf(error, "%s: %d", "incorrect network address", result);
-        __android_log_write(ANDROID_LOG_ERROR, "Giggle", error);
+        std::string error = "incorrect network address" + to_string(result);
+        __android_log_write(ANDROID_LOG_ERROR, TAG, error.c_str());
         return 0;
     }
 
@@ -54,11 +66,10 @@ jint JNICALL Java_com_udt_udt_connect(JNIEnv* env, jobject thiz, jint handle, js
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    char port_str[100] = {0};
-    sprintf(port_str, "%d", port);
-    if (0 != getaddrinfo(ip_address, port_str, &hints, &peer))
+    std::string port_str = to_string(port);
+    if (0 != getaddrinfo(ip_address, port_str.c_str(), &hints, &peer))
     {
-        __android_log_write(ANDROID_LOG_ERROR, "Giggle", "incorrect server/peer address. ");
+        __android_log_write(ANDROID_LOG_ERROR, TAG, "incorrect server/peer address. ");
         return 0;
     }
 
@@ -66,7 +77,7 @@ jint JNICALL Java_com_udt_udt_connect(JNIEnv* env, jobject thiz, jint handle, js
     int connect_result = 0;
     if ((connect_result = UDT::connect(handle, peer->ai_addr, peer->ai_addrlen)) == UDT::ERROR)
     {
-        __android_log_write(ANDROID_LOG_ERROR, "Giggle", "connect error");
+        __android_log_write(ANDROID_LOG_ERROR, TAG, "connect error");
         return 0;
     }
 
@@ -89,7 +100,7 @@ jint JNICALL Java_com_udt_udt_send(JNIEnv *env, jobject thiz, jint handle, jbyte
     int result = UDT::send(handle, (const char*)data_ptr, size, flag);
     if (result == UDT::ERROR)
     {
-        __android_log_write(ANDROID_LOG_ERROR, "Giggle", "send data fail!");
+        __android_log_write(ANDROID_LOG_ERROR, TAG, "send data fail!");
     }
 
     env->ReleaseByteArrayElements(data, data_ptr, JNI_ABORT);
