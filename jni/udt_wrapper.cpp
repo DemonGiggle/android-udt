@@ -117,7 +117,10 @@ jbyteArray JNICALL Java_com_udt_udt_recv(JNIEnv *env, jobject thiz, jint handle,
     }
 
     jbyteArray recv_buffer = env->NewByteArray(recv_size);
-    memcpy(recv_buffer, buffer, recv_size);
 
-    
+    jbyte* recv_buffer_ptr = env->GetByteArrayElements(recv_buffer, NULL);
+    memcpy(recv_buffer_ptr, buffer, recv_size);
+    env->ReleaseByteArrayElements(recv_buffer, recv_buffer_ptr, JNI_COMMIT);
+
+    return recv_buffer;
 }
