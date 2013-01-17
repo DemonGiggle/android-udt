@@ -90,37 +90,42 @@ jint JNICALL Java_com_udt_udt_close(JNIEnv *env, jobject thiz, jint handle)
     return UDT::close(handle);
 }
 
-jint JNICALL Java_com_udt_udt_send(JNIEnv *env, jobject thiz, jint handle, jbyteArray data, jint flag)
+jint JNICALL Java_com_udt_udt_send(JNIEnv *env, jobject thiz, jint handle, jbyteArray buffer, jint offset, jint max_send, jint flag)
 {
-    jsize size = env->GetArrayLength(data);
-    jbyte* data_ptr = env->GetByteArrayElements(data, NULL);
+    //
+    // TODO: Consider to use GetPrimitiveArrayCritical which though may stall GC. The current implementation
+    // may copy the whole buffer.
+    //
+    jbyte *local_buffer = new jbyte[max_send];
+    env->GetByteArrayRegion(buffer, offset, max_send, local_buffer);
 
-    int result = UDT::send(handle, (const char*)data_ptr, size, flag);
-    if (result == UDT::ERROR)
+    int sent_size = UDT::send(handle, (const char*)local_buffer, max_send, flag);
+    if (sent_size == UDT::ERROR)
     {
-        __android_log_write(ANDROID_LOG_ERROR, TAG, "send data fail!");
+        __android_log_write(ANDROID_LOG_ERROR, TAG, UDT::getlasterror().getErrorMessage());
     }
 
-    env->ReleaseByteArrayElements(data, data_ptr, JNI_ABORT);
-
-    return result;
+    delete local_buffer;
+    return sent_size;
 }
 
-jbyteArray JNICALL Java_com_udt_udt_recv(JNIEnv *env, jobject thiz, jint handle, jint size, jint flags)
+jint JNICALL Java_com_udt_udt_recv(JNIEnv *env, jobject thiz, jint handle, jbyteArray buffer, jint offset, jint max_read, jint flags)
 {
-    char *buffer = new char[size];
-    int recv_size = UDT::recv(handle, buffer, size, flags);
+    //
+    // TODO: Consider to use GetPrimitiveArrayCritical which though may stall GC. The current implementation
+    // may copy the whole buffer.
+    //
+    jbyte *local_buffer = new jbyte[max_read];
 
-    if (recv_size == UDT::ERROR)
+    int recv_size = 0;
+    if (UDT::ERROR == (recv_size = UDT::recv(handle, (char*)local_buffer, max_read, flags)))
     {
         recv_size = 0;
+        __android_log_write(ANDROID_LOG_ERROR, TAG, UDT::getlasterror().getErrorMessage());
     }
 
-    jbyteArray recv_buffer = env->NewByteArray(recv_size);
+    env->SetByteArrayRegion(buffer, offset, recv_size, local_buffer);
 
-    jbyte* recv_buffer_ptr = env->GetByteArrayElements(recv_buffer, NULL);
-    memcpy(recv_buffer_ptr, buffer, recv_size);
-    env->ReleaseByteArrayElements(recv_buffer, recv_buffer_ptr, JNI_COMMIT);
-
-    return recv_buffer;
+    delete local_buffer;
+    return recv_size;
 }

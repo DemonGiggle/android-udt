@@ -50,18 +50,18 @@ JNIEXPORT jint JNICALL Java_com_udt_udt_close
 /*
  * Class:     com_udt_udt
  * Method:    send
- * Signature: (I[BI)I
+ * Signature: (I[BIII)I
  */
 JNIEXPORT jint JNICALL Java_com_udt_udt_send
-  (JNIEnv *, jobject, jint, jbyteArray, jint);
+  (JNIEnv *, jobject, jint, jbyteArray, jint, jint, jint);
 
 /*
  * Class:     com_udt_udt
  * Method:    recv
- * Signature: (II)[B
+ * Signature: (I[BIII)I
  */
-JNIEXPORT jbyteArray JNICALL Java_com_udt_udt_recv
-  (JNIEnv *, jobject, jint, jint);
+JNIEXPORT jint JNICALL Java_com_udt_udt_recv
+  (JNIEnv *, jobject, jint, jbyteArray, jint, jint, jint);
 
 #ifdef __cplusplus
 }
