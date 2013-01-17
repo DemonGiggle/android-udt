@@ -8,6 +8,19 @@
 
 #include <string>
 
+namespace {
+
+    std::string to_string(int value) 
+    {
+        char buffer[100] = {0};
+        sprintf(buffer, "%d", value);
+
+        return std::string(buffer);
+    }
+}
+
+const char TAG[] = "UDT-JNI";
+
 jint JNICALL Java_com_udt_udt_startup(JNIEnv *, jobject)
 {
     return UDT::startup();
@@ -31,9 +44,8 @@ jint JNICALL Java_com_udt_udt_socket(JNIEnv *, jobject)
     int result = 0;
     if ((result = getaddrinfo(NULL, "9000", &hints, &local)) != 0)
     {
-        char error[100] = {0};
-        sprintf(error, "%s: %d", "incorrect network address", result);
-        __android_log_write(ANDROID_LOG_ERROR, "Giggle", error);
+        std::string error = "incorrect network address" + to_string(result);
+        __android_log_write(ANDROID_LOG_ERROR, TAG, error.c_str());
         return 0;
     }
 
@@ -54,11 +66,10 @@ jint JNICALL Java_com_udt_udt_connect(JNIEnv* env, jobject thiz, jint handle, js
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    char port_str[100] = {0};
-    sprintf(port_str, "%d", port);
-    if (0 != getaddrinfo(ip_address, port_str, &hints, &peer))
+    std::string port_str = to_string(port);
+    if (0 != getaddrinfo(ip_address, port_str.c_str(), &hints, &peer))
     {
-        __android_log_write(ANDROID_LOG_ERROR, "Giggle", "incorrect server/peer address. ");
+        __android_log_write(ANDROID_LOG_ERROR, TAG, "incorrect server/peer address. ");
         return 0;
     }
 
@@ -66,7 +77,7 @@ jint JNICALL Java_com_udt_udt_connect(JNIEnv* env, jobject thiz, jint handle, js
     int connect_result = 0;
     if ((connect_result = UDT::connect(handle, peer->ai_addr, peer->ai_addrlen)) == UDT::ERROR)
     {
-        __android_log_write(ANDROID_LOG_ERROR, "Giggle", "connect error");
+        __android_log_write(ANDROID_LOG_ERROR, TAG, "connect error");
         return 0;
     }
 
@@ -79,26 +90,42 @@ jint JNICALL Java_com_udt_udt_close(JNIEnv *env, jobject thiz, jint handle)
     return UDT::close(handle);
 }
 
-jint JNICALL Java_com_udt_udt_send(JNIEnv *env, jobject thiz, jint handle, jbyteArray data, jint flag)
+jint JNICALL Java_com_udt_udt_send(JNIEnv *env, jobject thiz, jint handle, jbyteArray buffer, jint offset, jint max_send, jint flag)
 {
-    jsize size = env->GetArrayLength(data);
+    //
+    // TODO: Consider to use GetPrimitiveArrayCritical which though may stall GC. The current implementation
+    // may copy the whole buffer.
+    //
+    jbyte *local_buffer = new jbyte[max_send];
+    env->GetByteArrayRegion(buffer, offset, max_send, local_buffer);
 
-    jboolean is_copy = JNI_FALSE;
-    jbyte* data_ptr = env->GetByteArrayElements(data, &is_copy);
-
-    int result = UDT::send(handle, (const char*)data_ptr, size, flag);
-    if (result == UDT::ERROR)
+    int sent_size = UDT::send(handle, (const char*)local_buffer, max_send, flag);
+    if (sent_size == UDT::ERROR)
     {
-        __android_log_write(ANDROID_LOG_ERROR, "Giggle", "send data fail!");
+        __android_log_write(ANDROID_LOG_ERROR, TAG, UDT::getlasterror().getErrorMessage());
     }
 
-    env->ReleaseByteArrayElements(data, data_ptr, JNI_ABORT);
-
-    return result;
+    delete local_buffer;
+    return sent_size;
 }
 
-jint Java_com_udt_udt_recv(JNIEnv *, jobject, jint, jbyteArray, jint, jint)
+jint JNICALL Java_com_udt_udt_recv(JNIEnv *env, jobject thiz, jint handle, jbyteArray buffer, jint offset, jint max_read, jint flags)
 {
-    return 0;
-}
+    //
+    // TODO: Consider to use GetPrimitiveArrayCritical which though may stall GC. The current implementation
+    // may copy the whole buffer.
+    //
+    jbyte *local_buffer = new jbyte[max_read];
 
+    int recv_size = 0;
+    if (UDT::ERROR == (recv_size = UDT::recv(handle, (char*)local_buffer, max_read, flags)))
+    {
+        recv_size = 0;
+        __android_log_write(ANDROID_LOG_ERROR, TAG, UDT::getlasterror().getErrorMessage());
+    }
+
+    env->SetByteArrayRegion(buffer, offset, recv_size, local_buffer);
+
+    delete local_buffer;
+    return recv_size;
+}
