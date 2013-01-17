@@ -108,7 +108,7 @@ jint JNICALL Java_com_udt_udt_send(JNIEnv *env, jobject thiz, jint handle, jbyte
 
 jbyteArray JNICALL Java_com_udt_udt_recv(JNIEnv *env, jobject thiz, jint handle, jint size, jint flags)
 {
-    char *buffer = new buffer[size];
+    char *buffer = new char[size];
     int recv_size = UDT::recv(handle, buffer, size, flags);
 
     if (recv_size == UDT::ERROR)
